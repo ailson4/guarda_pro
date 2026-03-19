@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "907458222644",
+    "project_id": "appguardanoturno",
+    "storage_bucket": "appguardanoturno.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:907458222644:android:dc1eb48e6e9c20e2fe8861",
+        "android_client_info": {
+          "package_name": "com.example.app_guarda"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCSFeUjhRhYKuvPOdR2XN3bahyZp4rDw4c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
