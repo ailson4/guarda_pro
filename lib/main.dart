@@ -306,7 +306,28 @@ class PainelDoDia extends StatelessWidget {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26),
         ),
         centerTitle: false,
+
         actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.person_add_alt_1,
+              size: 28,
+              color: Colors.blueAccent,
+            ),
+            tooltip: 'Adicionar Morador',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const TelaNovoMorador(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(
+            width: 8,
+          ), // Dá só um espacinho da borda direita da tela
+
           IconButton(
             icon: const Icon(Icons.history, color: Colors.blueAccent, size: 28),
             tooltip: 'Histórico de Recebimentos',
@@ -620,17 +641,6 @@ class PainelDoDia extends StatelessWidget {
             },
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.white,
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const TelaNovoMorador()),
-          );
-        },
-        child: const Icon(Icons.add, size: 30),
       ),
     );
   }
@@ -1395,7 +1405,7 @@ class _TelaGestaoMoradoresState extends State<TelaGestaoMoradores> {
     final String uid = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Meus Moradores')),
+      appBar: AppBar(title: const Text('Lista')),
       body: Column(
         children: [
           Padding(
