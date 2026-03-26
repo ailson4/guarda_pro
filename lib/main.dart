@@ -339,6 +339,17 @@ class PainelDoDia extends StatelessWidget {
               );
             },
           ),
+
+          IconButton(
+            icon: const Icon(Icons.settings), // Ícone de engrenagem
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const TelaPerfil()),
+              );
+            },
+          ),
+
           IconButton(
             icon: const Icon(
               Icons.people_alt,
@@ -434,7 +445,46 @@ class PainelDoDia extends StatelessWidget {
 
           const CartaoResumo(),
 
-          const SizedBox(height: 30),
+          const SizedBox(height: 24), // Espaço antes do novo botão
+          // --- NOVO BOTÃO: COBRANÇA ONLINE ---
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor:
+                  Colors.teal.shade600, // Cor distinta para destacar
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              elevation: 2,
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const TelaCobrancaOnline(),
+                ),
+              );
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.send_to_mobile, size: 28),
+                SizedBox(width: 12),
+                Text(
+                  'COBRANÇA ONLINE',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 30), // Espaço depois do novo botão
+
           const Text(
             'Roteiro de Cobranças',
             style: TextStyle(
@@ -2193,7 +2243,7 @@ class TelaHistorico extends StatelessWidget {
                       final timestamp = dados['data_pagamento'] as Timestamp?;
                       final data = timestamp?.toDate() ?? DateTime.now();
                       final dataFormatada = DateFormat(
-                        'dd/MM/yyyy às HH:mm',
+                        "dd/MM/yyyy 'às' HH:mm",
                       ).format(data);
                       final bool reciboEnviado =
                           dados['recibo_enviado'] ?? false;
@@ -2676,6 +2726,678 @@ class TelaBloqueioAssinatura extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class TelaPerfil extends StatefulWidget {
+  const TelaPerfil({super.key});
+
+  @override
+  State<TelaPerfil> createState() => _TelaPerfilState();
+}
+
+class _TelaPerfilState extends State<TelaPerfil> {
+  final _nomeController = TextEditingController();
+  final _chavePixController = TextEditingController();
+  bool _carregando = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarPerfil();
+  }
+
+  // 1. Busca os dados no Firebase quando a tela abre
+  Future<void> _carregarPerfil() async {
+    setState(() => _carregando = true);
+    try {
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+      final doc = await FirebaseFirestore.instance
+          .collection('perfil_guarda')
+          .doc(uid)
+          .get();
+
+      if (doc.exists) {
+        final dados = doc.data()!;
+        _nomeController.text = dados['nome'] ?? '';
+        _chavePixController.text = dados['chave_pix'] ?? '';
+      }
+    } catch (e) {
+      debugPrint('Erro ao carregar perfil: $e');
+    }
+    setState(() => _carregando = false);
+  }
+
+  // 2. Salva os dados no Firebase quando o guarda aperta o botão
+  Future<void> _salvarPerfil() async {
+    if (_nomeController.text.isEmpty || _chavePixController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Preencha todos os campos!'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _carregando = true);
+    try {
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+
+      // O SetOptions(merge: true) atualiza apenas o que mudou, sem apagar outros dados
+      await FirebaseFirestore.instance
+          .collection('perfil_guarda')
+          .doc(uid)
+          .set({
+            'nome': _nomeController.text.trim(),
+            'chave_pix': _chavePixController.text.trim(),
+            'atualizado_em': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Chave PIX salva com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context); // Fecha a tela de configurações e volta pro app
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao salvar: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+    setState(() => _carregando = false);
+  }
+
+  @override
+  void dispose() {
+    _nomeController.dispose();
+    _chavePixController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Configurações de Recebimento'),
+        backgroundColor: Colors.blueGrey,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      backgroundColor: Colors.grey.shade100,
+      body: _carregando
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Icon(
+                    Icons.account_balance_wallet,
+                    size: 80,
+                    color: Colors.blueGrey,
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Meus Dados Financeiros',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueGrey,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'A sua chave PIX será enviada automaticamente nas mensagens de cobrança pelo WhatsApp para os moradores.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Campo NOME
+                  TextField(
+                    controller: _nomeController,
+                    decoration: InputDecoration(
+                      labelText: 'Seu Nome (Ex: Guarda João)',
+                      prefixIcon: const Icon(Icons.person),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Campo CHAVE PIX
+                  TextField(
+                    controller: _chavePixController,
+                    decoration: InputDecoration(
+                      labelText: 'Sua Chave PIX (Celular, CPF, E-mail...)',
+                      prefixIcon: const Icon(Icons.pix, color: Colors.teal),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Botão SALVAR
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
+                    ),
+                    onPressed: _salvarPerfil,
+                    child: const Text(
+                      'SALVAR DADOS',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+    );
+  }
+}
+
+//--Tela cobrança online--//
+
+class TelaCobrancaOnline extends StatefulWidget {
+  const TelaCobrancaOnline({super.key});
+
+  @override
+  State<TelaCobrancaOnline> createState() => _TelaCobrancaOnlineState();
+}
+
+class _TelaCobrancaOnlineState extends State<TelaCobrancaOnline> {
+  String _chavePix = '';
+  String _nomeGuarda = '';
+  bool _carregandoPerfil = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarPerfil();
+  }
+
+  Future<void> _carregarPerfil() async {
+    try {
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+      final doc = await FirebaseFirestore.instance
+          .collection('perfil_guarda')
+          .doc(uid)
+          .get();
+
+      if (doc.exists) {
+        final dados = doc.data()!;
+        setState(() {
+          _nomeGuarda = dados['nome'] ?? 'Guarda';
+          _chavePix = dados['chave_pix'] ?? '';
+        });
+      }
+    } catch (e) {
+      debugPrint('Erro ao carregar PIX: $e');
+    }
+    setState(() => _carregandoPerfil = false);
+  }
+
+  // Envia a mensagem com texto dinâmico e salva no banco que foi cobrado
+  Future<void> _cobrarViaWhatsApp(
+    String docId,
+    Map<String, dynamic> morador,
+    String mesAtualNome,
+    String mesRef,
+    String tipoDaCobranca,
+  ) async {
+    if (_chavePix.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Atenção: Configure sua Chave PIX em "Configurações" primeiro!',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final telefoneBruto = morador['telefone']?.toString() ?? '';
+    final telefoneLimpo = telefoneBruto.replaceAll(RegExp(r'[^0-9]'), '');
+
+    if (telefoneLimpo.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Este morador não tem telefone cadastrado.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final nome = morador['nome'] ?? 'Sem Nome';
+    final numeroCasa = morador['endereco_numero']?.toString() ?? 'S/N';
+    final valor = morador['valor_mensalidade']?.toString() ?? '0,00';
+    final diaVencimento = morador['dia_vencimento']?.toString() ?? '--';
+
+    // TEXTOS DINÂMICOS BASEADOS NO STATUS E USANDO O NOME DO GUARDA
+    String mensagem = "";
+
+    if (tipoDaCobranca == 'atrasado') {
+      mensagem =
+          "Olá $nome! Tudo bem? Aqui é o $_nomeGuarda da ronda noturna.\n\nVerifiquei aqui que a mensalidade da Casa $numeroCasa referente a $mesAtualNome acabou passando do vencimento (dia $diaVencimento). O valor é R\$ $valor.\n\nPara facilitar, você pode realizar o pagamento direto na minha chave PIX:\n$_chavePix\n\nAssim que fizer, por favor me envie o comprovante. Qualquer dúvida, estou à disposição!";
+    } else if (tipoDaCobranca == 'hoje') {
+      mensagem =
+          "Olá $nome! Tudo bem? Aqui é o $_nomeGuarda da ronda noturna.\n\nPassando apenas para lembrar que a mensalidade da Casa $numeroCasa de $mesAtualNome vence *hoje*! O valor é R\$ $valor.\n\nSegue a minha chave PIX para o pagamento:\n$_chavePix\n\nAssim que transferir, é só mandar o comprovante aqui. Muito obrigado!";
+    } else {
+      // proximos
+      mensagem =
+          "Olá $nome! Tudo bem? Aqui é o $_nomeGuarda da ronda noturna.\n\nEnviando antecipadamente a mensalidade da Casa $numeroCasa de $mesAtualNome. O vencimento é dia $diaVencimento e o valor é R\$ $valor.\n\nMinha chave PIX:\n$_chavePix\n\nObrigado pela parceria de sempre!";
+    }
+
+    final urlStr =
+        "https://wa.me/55$telefoneLimpo?text=${Uri.encodeComponent(mensagem)}";
+
+    try {
+      // 1. Abre o WhatsApp
+      await launchUrl(Uri.parse(urlStr), mode: LaunchMode.externalApplication);
+
+      // 2. Grava no cadastro do morador que ele já foi cobrado neste mês
+      await FirebaseFirestore.instance
+          .collection('moradores')
+          .doc(docId)
+          .update({'ultimo_mes_cobrado': mesRef});
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erro ao abrir WhatsApp'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // Constrói a Sanfona Inteligente
+  Widget _construirSanfona(
+    List<QueryDocumentSnapshot> moradores,
+    String titulo,
+    Color corDestaque,
+    IconData icone,
+    String mesAtualNome,
+    String mesRef,
+    String tipoDaCobranca,
+    bool expandidoPadrao,
+  ) {
+    if (moradores.isEmpty) return const SizedBox.shrink();
+
+    List<Widget> cartoes = moradores.map((doc) {
+      final dados = doc.data() as Map<String, dynamic>;
+      final docId = doc.id;
+
+      final nome = dados['nome'] ?? 'Sem Nome';
+      final numeroCasa = dados['endereco_numero']?.toString() ?? 'S/N';
+      final valor = dados['valor_mensalidade']?.toString() ?? '0,00';
+      final diaVencimento = dados['dia_vencimento']?.toString() ?? '--';
+
+      // Verifica se a etiqueta do mês atual está lá
+      final bool jaCobradoNesteMes = dados['ultimo_mes_cobrado'] == mesRef;
+
+      return Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.grey.shade300),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: corDestaque.withAlpha(20),
+                radius: 20,
+                child: Icon(Icons.home, color: corDestaque, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      nome,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Casa $numeroCasa • Vence dia $diaVencimento',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    Text(
+                      'Valor: R\$ $valor',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blueGrey,
+                      ),
+                    ),
+
+                    // Aviso visual se a mensagem já foi enviada
+                    if (jaCobradoNesteMes)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6.0),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.done_all,
+                              color: Colors.green.shade600,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Cobrança enviada',
+                              style: TextStyle(
+                                color: Colors.green.shade600,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: jaCobradoNesteMes
+                      ? Colors.blueGrey.shade100
+                      : Colors.green, // Muda a cor se já cobrou
+                  foregroundColor: jaCobradoNesteMes
+                      ? Colors.blueGrey.shade800
+                      : Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                ),
+                icon: Icon(
+                  jaCobradoNesteMes ? Icons.replay : Icons.pix,
+                  size: 16,
+                ),
+                label: Text(jaCobradoNesteMes ? 'Reenviar' : 'Cobrar'),
+                onPressed: () => _cobrarViaWhatsApp(
+                  docId,
+                  dados,
+                  mesAtualNome,
+                  mesRef,
+                  tipoDaCobranca,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }).toList();
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          initiallyExpanded: expandidoPadrao,
+          leading: Icon(icone, color: corDestaque, size: 28),
+          title: Text(
+            titulo,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.blueGrey.shade800,
+            ),
+          ),
+          subtitle: Text(
+            '${moradores.length} casa(s)',
+            style: TextStyle(color: corDestaque, fontWeight: FontWeight.bold),
+          ),
+          iconColor: corDestaque,
+          collapsedIconColor: Colors.grey,
+          childrenPadding: const EdgeInsets.only(bottom: 12.0),
+          children: cartoes,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final String uid = FirebaseAuth.instance.currentUser!.uid;
+    final dataAtual = DateTime.now();
+    final diaDeHoje = dataAtual.day;
+    final mesRef =
+        "${dataAtual.month.toString().padLeft(2, '0')}/${dataAtual.year}";
+
+    const mesesNomes = [
+      "Janeiro",
+      "Fevereiro",
+      "Março",
+      "Abril",
+      "Maio",
+      "Junho",
+      "Julho",
+      "Agosto",
+      "Setembro",
+      "Outubro",
+      "Novembro",
+      "Dezembro",
+    ];
+    final mesAtualNome = mesesNomes[dataAtual.month - 1];
+
+    if (_carregandoPerfil) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Fila de Cobrança'),
+        backgroundColor: Colors.blueGrey,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      backgroundColor: Colors.grey.shade100,
+
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('moradores')
+            .where('guarda_id', isEqualTo: uid)
+            .snapshots(),
+        builder: (context, snapshotMoradores) {
+          if (snapshotMoradores.connectionState == ConnectionState.waiting)
+            return const Center(child: CircularProgressIndicator());
+          if (!snapshotMoradores.hasData ||
+              snapshotMoradores.data!.docs.isEmpty) {
+            return const Center(
+              child: Text(
+                'Nenhum morador cadastrado.',
+                style: TextStyle(color: Colors.grey),
+              ),
+            );
+          }
+
+          final todosMoradores = snapshotMoradores.data!.docs;
+
+          return StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('pagamentos')
+                .where('guarda_id', isEqualTo: uid)
+                .where('mes_referencia', isEqualTo: mesRef)
+                .snapshots(),
+            builder: (context, snapshotPagamentos) {
+              if (snapshotPagamentos.connectionState == ConnectionState.waiting)
+                return const Center(child: CircularProgressIndicator());
+
+              final pagamentosDoMes = snapshotPagamentos.data?.docs ?? [];
+              final casasPagas = pagamentosDoMes
+                  .map(
+                    (doc) =>
+                        (doc.data() as Map<String, dynamic>)['casa'].toString(),
+                  )
+                  .toSet();
+
+              List<QueryDocumentSnapshot> atrasados = [];
+              List<QueryDocumentSnapshot> venceHoje = [];
+              List<QueryDocumentSnapshot> proximosDias = [];
+
+              for (var moradorDoc in todosMoradores) {
+                final dados = moradorDoc.data() as Map<String, dynamic>;
+                final numeroCasa = dados['endereco_numero']?.toString() ?? '';
+
+                if (casasPagas.contains(numeroCasa)) continue;
+
+                int diaVencimento =
+                    int.tryParse(dados['dia_vencimento']?.toString() ?? '0') ??
+                    0;
+
+                if (diaVencimento < diaDeHoje) {
+                  atrasados.add(moradorDoc);
+                } else if (diaVencimento == diaDeHoje) {
+                  venceHoje.add(moradorDoc);
+                } else {
+                  proximosDias.add(moradorDoc);
+                }
+              }
+
+              if (atrasados.isEmpty &&
+                  venceHoje.isEmpty &&
+                  proximosDias.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.check_circle,
+                        size: 80,
+                        color: Colors.green.shade400,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Parabéns!',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Todos os moradores já pagaram a\nmensalidade deste mês.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey, fontSize: 16),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return ListView(
+                padding: const EdgeInsets.only(bottom: 32),
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    color: Colors.blueGrey,
+                    child: Column(
+                      children: [
+                        Text(
+                          'Pendências de $mesAtualNome',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Sua Chave PIX: $_chavePix',
+                          style: const TextStyle(color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Sanfona 1: Atrasados (Abre automaticamente se tiver gente)
+                  _construirSanfona(
+                    atrasados,
+                    'Em Atraso',
+                    Colors.red,
+                    Icons.warning_rounded,
+                    mesAtualNome,
+                    mesRef,
+                    'atrasado',
+                    atrasados.isNotEmpty,
+                  ),
+
+                  // Sanfona 2: Vence Hoje (Abre automaticamente se a primeira estiver vazia)
+                  _construirSanfona(
+                    venceHoje,
+                    'Vence Hoje',
+                    Colors.orange,
+                    Icons.notification_important,
+                    mesAtualNome,
+                    mesRef,
+                    'hoje',
+                    atrasados.isEmpty && venceHoje.isNotEmpty,
+                  ),
+
+                  // Sanfona 3: Próximos (Fica fechada por padrão)
+                  _construirSanfona(
+                    proximosDias,
+                    'Próximos Vencimentos',
+                    Colors.blue,
+                    Icons.calendar_month,
+                    mesAtualNome,
+                    mesRef,
+                    'proximo',
+                    false,
+                  ),
+                ],
+              );
+            },
+          );
+        },
       ),
     );
   }
