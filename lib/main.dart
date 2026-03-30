@@ -307,129 +307,228 @@ class PainelDoDia extends StatelessWidget {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26),
         ),
         centerTitle: false,
+        backgroundColor: Colors.blueGrey,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        // Removemos todos os "actions" daqui. O Flutter vai colocar o ícone de Menu (≡) automaticamente na esquerda!
+      ),
 
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.person_add_alt_1,
-              size: 28,
-              color: Colors.blueAccent,
+      // --- O NOVO MENU LATERAL (DRAWER) ---
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            // Cabeçalho do Menu
+            DrawerHeader(
+              decoration: BoxDecoration(color: Colors.blueGrey.shade700),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Icon(Icons.shield, size: 50, color: Colors.white),
+                  SizedBox(height: 12),
+                  Text(
+                    'Guarda Pro',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'Painel de Gestão',
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                ],
+              ),
             ),
-            tooltip: 'Adicionar Morador',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const TelaNovoMorador(),
-                ),
-              );
-            },
-          ),
-          const SizedBox(
-            width: 8,
-          ), // Dá só um espacinho da borda direita da tela
 
-          IconButton(
-            icon: const Icon(Icons.history, color: Colors.blueAccent, size: 28),
-            tooltip: 'Histórico de Recebimentos',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const TelaHistorico()),
-              );
-            },
-          ),
-
-          IconButton(
-            icon: const Icon(Icons.settings), // Ícone de engrenagem
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const TelaPerfil()),
-              );
-            },
-          ),
-
-          IconButton(
-            icon: const Icon(
-              Icons.people_alt,
-              color: Colors.blueAccent,
-              size: 28,
+            // Item 1: Cobrança Online
+            ListTile(
+              leading: const Icon(
+                Icons.send_to_mobile,
+                color: Colors.teal,
+                size: 28,
+              ),
+              title: const Text(
+                'Cobrança Online',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: const Text('WhatsApp PIX'),
+              onTap: () {
+                Navigator.pop(context); // Fecha o menu lateral
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TelaCobrancaOnline(),
+                  ),
+                );
+              },
             ),
-            tooltip: 'Gestão de Moradores',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const TelaGestaoMoradores(),
+
+            // Item 2: Dashboard Financeiro
+            ListTile(
+              leading: const Icon(
+                Icons.insert_chart,
+                color: Colors.green,
+                size: 28,
+              ),
+              title: const Text(
+                'Dashboard Financeiro',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: const Text('Gráficos e Histórico'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TelaHistorico(),
+                  ),
+                );
+              },
+            ),
+
+            const Divider(), // Uma linha divisória elegante
+            // Item 3: Gestão de Moradores
+            ListTile(
+              leading: const Icon(
+                Icons.people_alt,
+                color: Colors.orange,
+                size: 28,
+              ),
+              title: const Text(
+                'Gestão de Moradores',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TelaGestaoMoradores(),
+                  ),
+                );
+              },
+            ),
+
+            // Item 4: Novo Morador
+            ListTile(
+              leading: const Icon(
+                Icons.person_add_alt_1,
+                color: Colors.blueAccent,
+                size: 28,
+              ),
+              title: const Text(
+                'Novo Morador',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TelaNovoMorador(),
+                  ),
+                );
+              },
+            ),
+
+            const Divider(),
+
+            // Item 5: Configurações
+            ListTile(
+              leading: const Icon(Icons.settings, color: Colors.grey, size: 28),
+              title: const Text(
+                'Configurações',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: const Text('Chave PIX e Dados'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const TelaPerfil()),
+                );
+              },
+            ),
+
+            // Item 6: Sair
+            ListTile(
+              leading: const Icon(
+                Icons.exit_to_app,
+                color: Colors.redAccent,
+                size: 28,
+              ),
+              title: const Text(
+                'Sair do Aplicativo',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.redAccent,
                 ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.exit_to_app, color: Colors.redAccent),
-            tooltip: 'Sair',
-            onPressed: () {
-              // --- DIALOG DE CONFIRMAÇÃO PARA SAIR ---
-              showDialog(
-                context: context,
-                builder: (contextDialog) {
-                  return AlertDialog(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    title: const Row(
-                      children: [
-                        Icon(
-                          Icons.exit_to_app,
-                          color: Colors.redAccent,
-                          size: 28,
-                        ),
-                        SizedBox(width: 10),
-                        Text(
-                          'Sair da Conta?',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    content: const Text(
-                      'Tem certeza que deseja desconectar o seu usuário do aplicativo?',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(contextDialog),
-                        child: const Text(
-                          'Cancelar',
-                          style: TextStyle(color: Colors.grey, fontSize: 16),
-                        ),
+              ),
+              onTap: () {
+                Navigator.pop(context); // Fecha o menu primeiro
+                showDialog(
+                  context: context,
+                  builder: (contextDialog) {
+                    return AlertDialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                      title: const Row(
+                        children: [
+                          Icon(
+                            Icons.exit_to_app,
+                            color: Colors.redAccent,
+                            size: 28,
+                          ),
+                          SizedBox(width: 10),
+                          Text(
+                            'Sair da Conta?',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      content: const Text(
+                        'Tem certeza que deseja desconectar o seu usuário?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(contextDialog),
+                          child: const Text(
+                            'Cancelar',
+                            style: TextStyle(color: Colors.grey, fontSize: 16),
                           ),
                         ),
-                        onPressed: () async {
-                          Navigator.pop(contextDialog); // Fecha a janelinha
-                          await FirebaseAuth.instance
-                              .signOut(); // Desloga do Firebase
-                        },
-                        child: const Text(
-                          'Sim, sair',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.redAccent,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: () async {
+                            Navigator.pop(contextDialog);
+                            await FirebaseAuth.instance.signOut();
+                          },
+                          child: const Text(
+                            'Sim, sair',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
-                      ),
-                    ],
-                  );
-                },
-              );
-              // ----------------------------------------------------
-            },
-          ),
-        ],
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+          ],
+        ),
       ),
+
+      // --- O CORPO DA TELA (AGORA 100% LIMPO E FOCADO) ---
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
@@ -445,45 +544,7 @@ class PainelDoDia extends StatelessWidget {
 
           const CartaoResumo(),
 
-          const SizedBox(height: 24), // Espaço antes do novo botão
-          // --- NOVO BOTÃO: COBRANÇA ONLINE ---
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  Colors.teal.shade600, // Cor distinta para destacar
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 18),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              elevation: 2,
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const TelaCobrancaOnline(),
-                ),
-              );
-            },
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.send_to_mobile, size: 28),
-                SizedBox(width: 12),
-                Text(
-                  'COBRANÇA ONLINE',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.1,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 30), // Espaço depois do novo botão
+          const SizedBox(height: 30),
 
           const Text(
             'Roteiro de Cobranças',
@@ -564,9 +625,6 @@ class PainelDoDia extends StatelessWidget {
                     );
                   }
 
-                  // --- LÓGICA: AGRUPAR POR RUA E ORDENAR ---
-
-                  // 1. Cria um "Dicionário" onde a chave é o nome da Rua, e o valor é a lista de moradores daquela rua
                   Map<String, List<DocumentSnapshot>> moradoresPorRua = {};
 
                   for (var doc in moradoresDevendo) {
@@ -580,15 +638,12 @@ class PainelDoDia extends StatelessWidget {
                     moradoresPorRua[rua]!.add(doc);
                   }
 
-                  // 2. Extrai o nome das ruas e coloca em ordem alfabética
                   List<String> ruasOrdenadas = moradoresPorRua.keys.toList();
                   ruasOrdenadas.sort((a, b) => a.compareTo(b));
 
-                  // 3. Monta a tela final empilhando as ruas com ExpansionTile (Sanfona)
                   List<Widget> listaVisual = [];
 
                   for (var rua in ruasOrdenadas) {
-                    // Pega a lista de casas dessa rua e ordena pelo número (Crescente)
                     var moradoresDaRua = moradoresPorRua[rua]!;
                     moradoresDaRua.sort((a, b) {
                       final numA =
@@ -608,7 +663,6 @@ class PainelDoDia extends StatelessWidget {
                       return numA.compareTo(numB);
                     });
 
-                    // Cria a lista de cartões (filhos) apenas para esta rua
                     List<Widget> cartoesDaRua = [];
                     for (var documento in moradoresDaRua) {
                       final dados = documento.data() as Map<String, dynamic>;
@@ -634,7 +688,6 @@ class PainelDoDia extends StatelessWidget {
                       );
                     }
 
-                    // Adiciona a Rua como uma "Sanfona" clicável
                     listaVisual.add(
                       Card(
                         margin: const EdgeInsets.only(bottom: 16.0),
@@ -643,7 +696,6 @@ class PainelDoDia extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Theme(
-                          // Remove a linha padrão do Flutter
                           data: Theme.of(
                             context,
                           ).copyWith(dividerColor: Colors.transparent),
@@ -674,15 +726,13 @@ class PainelDoDia extends StatelessWidget {
                               horizontal: 12.0,
                               vertical: 8.0,
                             ),
-                            children:
-                                cartoesDaRua, // Aqui entram os moradores escondidos!
+                            children: cartoesDaRua,
                           ),
                         ),
                       ),
                     );
                   }
 
-                  // Retorna a lista completa para a tela
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: listaVisual,
@@ -1258,7 +1308,7 @@ class CartaoResumo extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'A Receber',
+                        'A Receber Hoje',
                         style: TextStyle(fontSize: 16, color: Colors.black54),
                       ),
                       carregando
@@ -3367,7 +3417,7 @@ class _TelaCobrancaOnlineState extends State<TelaCobrancaOnline> {
                     mesAtualNome,
                     mesRef,
                     'atrasado',
-                    atrasados.isNotEmpty,
+                    false,
                   ),
 
                   // Sanfona 2: Vence Hoje (Abre automaticamente se a primeira estiver vazia)
@@ -3379,7 +3429,7 @@ class _TelaCobrancaOnlineState extends State<TelaCobrancaOnline> {
                     mesAtualNome,
                     mesRef,
                     'hoje',
-                    atrasados.isEmpty && venceHoje.isNotEmpty,
+                    false,
                   ),
 
                   // Sanfona 3: Próximos (Fica fechada por padrão)
