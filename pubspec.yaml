@@ -41,6 +41,10 @@ dependencies:
   intl: ^0.20.2
   flutter_launcher_icons: ^0.14.4
   fl_chart: ^1.2.0
+  pdf: ^3.12.0
+  printing: ^5.14.3
+  google_fonts: ^8.1.0
+  local_auth: ^3.0.1
 
 dev_dependencies:
   flutter_test:
@@ -63,6 +67,9 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/images/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
@@ -96,7 +103,11 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 
   # CONFIGURAÇÃO DO ÍCONE DO GUARDA PRO MINIMALISTA
+
 flutter_launcher_icons:
-  image_path: "assets/icon_minimalista.png"
-  android: true
-  ios: false # Você pode ativar para true depois, se tiver um Mac
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/logo.png"
+  web:
+    generate: true
+    image_path: "assets/images/logo.png"

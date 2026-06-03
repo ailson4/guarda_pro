@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Regra: O usuário só pode ver a sua própria assinatura.
+    // Ninguém (além do admin via Firebase Console) pode editar a assinatura.
+    match /guardas/{guardaId} {
+      allow read: if request.auth != null && request.auth.uid == guardaId;
+      allow write: if false; // Apenas admin pode alterar o vencimento
+    }
+
+    // Regra: O usuário só pode gerenciar os moradores QUE ELE CADASTROU.
+    // É obrigatório que o campo guarda_id seja igual ao UID de quem está logado.
+    match /moradores/{moradorId} {
+      allow read, delete: if request.auth != null && resource.data.guarda_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.guarda_id == request.auth.uid;
+      allow update: if request.auth != null && resource.data.guarda_id == request.auth.uid && request.resource.data.guarda_id == request.auth.uid;
+    }
+
+    // Regra: O usuário só pode gerenciar os pagamentos QUE ELE RECEBEU.
+    match /pagamentos/{pagamentoId} {
+      allow read, delete: if request.auth != null && resource.data.guarda_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.guarda_id == request.auth.uid;
+      allow update: if request.auth != null && resource.data.guarda_id == request.auth.uid && request.resource.data.guarda_id == request.auth.uid;
+    }
+
+    // Regra: Perfil do guarda (Nome, Pix)
+    match /perfil_guarda/{guardaId} {
+      allow read, write: if request.auth != null && request.auth.uid == guardaId;
+    }
+  }
+}
